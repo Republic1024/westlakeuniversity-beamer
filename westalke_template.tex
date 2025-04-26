@@ -148,6 +148,38 @@
  \textit{(模型结构示意图将在实际报告中展示)}
 \end{frame}
 
+
+\section{协同过滤简介}
+
+\begin{frame}{协同过滤数学原理}
+
+\textbf{协同过滤（Collaborative Filtering）} 是推荐系统中最经典的方法之一，其核心思想是：
+\medskip
+
+\begin{itemize}
+    \item \textbf{用户-项目评分矩阵}：设 $R \in \mathbb{R}^{m \times n}$ 表示 $m$ 个用户对 $n$ 个项目的评分矩阵，其中 $R_{ui}$ 表示用户 $u$ 对项目 $i$ 的评分。
+    
+    \item \textbf{预测目标}：对于未评分的 $(u, i)$ 对，预测评分 $\hat{R}_{ui}$。
+\end{itemize}
+
+\vspace{0.5cm}
+
+一种常见的方法是\textbf{矩阵分解（Matrix Factorization）}：
+
+\[
+R \approx PQ^\top
+\]
+
+其中：
+- $P \in \mathbb{R}^{m \times d}$ 是用户的隐向量矩阵
+- $Q \in \mathbb{R}^{n \times d}$ 是项目的隐向量矩阵
+- $d$ 是潜在特征维度（通常 $d \ll m, n$）
+
+\vspace{0.5cm}
+
+\end{frame}
+
+
 \section{预期优势}
 
 \begin{frame}{预期优势}
