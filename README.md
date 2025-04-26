@@ -35,8 +35,12 @@
 
 
 ## 推荐编译顺序
+
+### 带参考文献
 XeLaTeX → BibTeX → XeLaTeX → XeLaTeX
 
+### 不带参考文献
+XeLaTex
 
 
 # Westlake University Beamer Template
