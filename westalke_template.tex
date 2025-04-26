@@ -1,0 +1,224 @@
+% 编译器：XeLaTeX
+\documentclass[11pt]{beamer}
+\usetheme{Madrid}
+\usefonttheme{serif}
+
+\usepackage{natbib}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+% ✅ 中文支持 + 自动换行
+\usepackage{xeCJK}
+\setCJKmainfont{MiSans} % 替换为系统已有字体，如 SimSun、思源宋体、微软雅黑等
+% 常用备选字体（根据系统环境）：
+% \setCJKmainfont{SimSun}         % 宋体（Windows）
+% \setCJKmainfont{Source Han Serif SC}  % 思源宋体（推荐）
+% \setCJKmainfont{Microsoft YaHei} % 微软雅黑（适合屏幕显示）
+% \usepackage{natbib}
+% \bibliographystyle{plainnat}
+
+% ✅ 英文字体（可选）
+% \usepackage{fontspec}
+% \setmainfont{Times New Roman} % 正文英文字体
+% \setsansfont{Arial}           % 无衬线英文字体
+% \setmonofont{Courier New}     % 等宽字体
+
+% ✅ 自动换行（中文有效）
+\usepackage{etoolbox}
+\AtBeginEnvironment{frame}{\raggedright}
+
+% ✅ 数学 & 表格 & 图像支持
+\usepackage{amsmath, amsfonts, amssymb, booktabs, graphicx}
+
+
+\DeclareMathOperator{\sen}{sen}
+\DeclareMathOperator{\tg}{tg}
+
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{navigation symbols}{}
+
+% ✅ 标题页信息美化
+\title{\textbf{基于注意力机制的调度行为建模：\\从 DIN 迁移到电网场景}}
+\author[Republic]{\textbf{Republic Wu}\\{\small 西湖大学 · 计算机科学与技术}}
+\institute[]{\textit{Westlake University} \\ \vspace{0.2em} Department of Computer Science and Technology}
+\date{\textbf{Week 4 · 工作汇报}}
+\newcommand{\email}{xxxxx@westlake.edu.cn}
+
+
+% \logo{\includegraphics[height=1cm]{./pic/logo2.png}}
+%\subject{}
+% \logo{\includegraphics[height=1cm]{./pic/logo2.png}}
+
+% \bibliographystyle{apalike}
+
+\begin{document}
+
+% \begin{CJK*}{UTF8}{song} % 使用 CJK 包，设置字体为宋体 (或其他您需要的字体)
+
+\begin{frame}
+\titlepage
+\begin{center}
+  \includegraphics[width=5cm]{./pic/logo3.png}
+\end{center}
+\end{frame}
+
+% \begin{frame}{总结}
+% \tableofcontents
+% \end{frame}
+
+\section{引言}
+
+\begin{frame}{引言}
+ 本周，我们构思并初步设计了一种借鉴推荐系统 DIN 模型的电网调度预测结构。该方法将调度员的历史操作行为序列作为偏好轨迹，引入 attention 机制，从中动态提取与当前电网状态相关的历史偏好，生成动态行为向量，进一步用于预测调度员在当前情景下最可能选择的操作策略。
+\end{frame}
+
+
+\begin{frame}{引言}
+  ChatGPT is a generative artificial intelligence chatbot developed by OpenAI and launched in 2022. It is based on large language models (LLMs) such as GPT-4o. ChatGPT can generate human-like conversational responses and enables users to refine and steer a conversation towards a desired length, format, style, level of detail, and language.[2] It is credited with accelerating the AI boom, which has led to ongoing rapid investment in and public attention to the field of artificial intelligence (AI).[3] Some observers have raised concern about the potential of ChatGPT and similar programs to displace human intelligence, enable plagiarism, or fuel misinformation.[4][5]
+
+ \end{frame}
+
+
+
+\section{背景问题}
+
+\begin{frame}{背景问题}
+ \begin{itemize}
+  \item 在电网运行场景中，调度员面对突发事件或负荷波动时，往往会根据过往的经验/相似场景做出判断。这些历史经验未必等权，而是对当前事件具有“动态偏好”的选择性参考。
+  \item 传统方法仅用规则匹配或全量历史回放，无法突出“关键历史”的权重分配。
+ \end{itemize}
+\end{frame}
+
+\section{关键思想}
+
+\begin{frame}{关键思想}
+ \begin{itemize}
+  \item 借鉴推荐系统中 DIN（Deep Interest Network） 的思想，将调度员历史决策序列看作“行为轨迹”，引入注意力机制，构造动态兴趣表示，以模拟调度员在当前上下文下对不同历史场景的偏好权\cite{langchain2023framework}重，从而预测当前可能采取的最优策略。
+ \end{itemize}
+\end{frame}
+
+\section{技术迁移路径}
+
+\begin{frame}{技术迁移路径}
+ \centering
+ \begin{tabular}{ll}
+  \toprule
+  DIN in 推荐系统 & 电网调度员建模 \\
+  \midrule
+  用户历史点击序列 & 调度员历史操作序列 \\
+  当前待推荐商品 & 当前电网状态或事件 \\
+  目标 item 的 embedding & 当前网架拓扑 + 负荷数据 \\
+  注意力权重 & 历史操作对当前情境的相似度 \\
+  动态 user 表示 & 动态调度员兴趣分布 \\
+  拼接后\cite{langchain2023framework} MLP 输出评分 & 拼接后 MLP 输出策略选择得分 \\
+  \bottomrule
+ \end{tabular}
+\end{frame}
+
+\section{预测任务设计}
+
+\begin{frame}{预测任务设计}
+ \textbf{输入：}
+ \begin{itemize}
+  \item 当前电网状态（如潮流、故障、电压等）
+  \item 调度员过往操作序列（如投切顺序、负荷转移方式）
+ \end{itemize}
+ \bigskip
+ \textbf{输出：}
+ \begin{itemize}
+  \item 当前调度员最可能执行的策略编号 / 目标控制量预测
+ \end{itemize}
+\end{frame}
+
+\section{模型结构草图}
+
+\begin{frame}{模型结构草图}
+ \centering
+ \begin{itemize}
+  \item 历史操作序列 $\rightarrow$ embedding $\rightarrow [H_1, H_2, ..., H_K] \in \mathbb{R}^{K \times D}$
+  \item 当前情境编码 $\rightarrow$ embedding $\rightarrow C \in \mathbb{R}^{D}$
+  \item Attention$(C, H_K) \rightarrow$ 加权求和 $\rightarrow$ 动态行为偏好向量 $U_{dyn}$
+  \item 拼接 $[U_{dyn} ; C] \rightarrow$ 输入 MLP
+  \item 输出：得分向量 / softmax / 回归目标
+ \end{itemize}
+ \textit{(模型结构示意图将在实际报告中展示)}
+\end{frame}
+
+\section{预期优势}
+
+\begin{frame}{预期优势}
+ \begin{itemize}
+  \item 不再“一刀切”地处理全部历史，而是高亮相似场景。
+  \item 可解释性强：attention weight 显示哪些历史操作被重视。
+  \item 更好模拟真实调度员的“经验迁移能力”。
+  \item 可与知识图谱/专家规则联合增强结构理解。
+ \end{itemize}
+\end{frame}
+
+\section{实验设计预案（可写进后续计划）}
+
+\begin{frame}{实验设计预案（可写进后续计划）}
+ \begin{itemize}
+  \item \textbf{数据源：} SCADA + 操作日志
+  \item \textbf{标签：} 调度策略编号 / 控制设备编号
+  \item \textbf{基线方法：} LSTM、纯 MLP、静态 embedding 方法
+  \item \textbf{评估指标：} 策略 Top-K 命中率、控制误差、响应时间指标
+ \end{itemize}
+\end{frame}
+
+\section{结论}
+
+\begin{frame}{结论}
+ 本周的工作为电网调度员行为预测提出了一种新颖的思路，即借鉴推荐系统中的深度兴趣网络（DIN）\cite{raffel2020exploring}模型\cite{wang2013learning}。所提出的方法通过引入注意力机制来动态衡量历史调度员操作与当前电网状态的相关性，有望提高预测的准确性并深入理解调度员的决策过程。实验设计预案规划了使用真实世界数据验证该方法有效性的后续步骤，并将其与现有基线方法进行比较。
+\end{frame}
+
+\section{未来工作}
+
+\begin{frame}{未来工作}
+ \begin{itemize}
+  \item 实现所提出的基于 DIN 的电网调度预测模型。
+  \item 使用真实世界的 SCADA 和操作日志数据进行实验。
+  \item 将所提出模型的性能与基线方法（LSTM、MLP、静态嵌入）进行比较。
+  \item 研究注意力权重的可解释性及其与专家知识的相关性。
+  \item 探索集成知识图谱或专家规则以进一步增强模型的理解和预测能力haha。
+ \end{itemize}
+\end{frame}
+
+% \section{参考文献}
+% \begin{frame}[allowframebreaks]{参考文献}
+%  \bibliography{references} % 请确保您有一个 references.bib 文件
+% \end{frame}
+
+\begin{frame}{引用测试}
+  协同过滤方法最早由 \cite{hu2008collaborative}提出。
+\end{frame}
+
+
+
+% \begin{frame}[allowframebreaks]{参考文献}
+% \bibliographystyle{plainnat}  % ✅ 仅在此处写一次
+% \bibliography{references}     % ✅ 文件名是 references.bib
+% \end{frame}
+    
+% \begin{frame}[allowframebreaks, t, fragile]{参考文献}
+% \bibliographystyle{plain}
+% \bibliography{references}
+% \end{frame}
+
+\begin{frame}[allowframebreaks]{参考文献}
+  \bibliographystyle{plain}
+  \bibliography{references}
+\end{frame}
+
+
+\begin{frame}
+\begin{center}
+ 谢谢！
+
+ \email
+\end{center}
+\end{frame}
+
+% \end{CJK*} % 结束 CJK 环境
+
+\end{document}
